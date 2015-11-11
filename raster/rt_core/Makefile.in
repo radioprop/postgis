@@ -1,6 +1,7 @@
-#############################################################################
+###########################################################
 #
 # Copyright (c) 2009 Sandro Santilli <strk@keybit.net>
+# Copyright (c) 2015 Nathaniel Hunter Clay <clay.nathaniel@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,17 +19,24 @@
 #
 #############################################################################
 
-AR = ar rs
-
+top_builddir = @top_builddir@
 CC = @CC@
-LIBLWGEOM_LDFLAGS = ../../liblwgeom/.libs/liblwgeom.a
-LIBLWGEOM_CFLAGS = -I../../liblwgeom
+LIBLWGEOM_LDFLAGS = ../../liblwgeom/.libs/liblwgeom.la
+#LIBLWGEOM_LDFLAGS = -L/usr/lib64 -llwgeom
+#LIBLWGEOM_CFLAGS = -I../../liblwgeom
 LIBGDAL_CFLAGS = @LIBGDAL_CFLAGS@
 LIBGDAL_LDFLAGS = @LIBGDAL_LDFLAGS@
 GEOS_LDFLAGS = @GEOS_LDFLAGS@ -lgeos_c
 PROJ_LDFLAGS = @PROJ_LDFLAGS@ -lproj
-LDFLAGS = $(LIBLWGEOM_LDFLAGS) $(LIBGDAL_LDFLAGS) $(PROJ_LDFLAGS) $(GEOS_LDFLAGS)
+LDFLAGS = $(LIBGDAL_LDFLAGS) $(PROJ_LDFLAGS) $(GEOS_LDFLAGS)
 CFLAGS = @CFLAGS@ @PICFLAGS@ @WARNFLAGS@ $(LIBLWGEOM_CFLAGS) $(LIBGDAL_CFLAGS) @PROJ_CPPFLAGS@ @GEOS_CPPFLAGS@
+LIBTOOL = @LIBTOOL@
+SHELL = @SHELL@
+INSTALL = $(SHELL) ../install-sh
+
+SOVER = @POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
+
+VERSION_INFO = 0:0:0
 
 # Standalone RTCORE objects
 RT_OBJS = \
@@ -45,12 +53,16 @@ RT_OBJS = \
 	rt_wkb.o \
 	rt_context.o
 
-RT_LIB = librtcore.a
+RT_LIB = librtcore.la
+
 RT_HEADERS = \
 	rt_serialize.h \
 	librtcore.h \
 	librtcore_internal.h \
 	../raster_config.h
+
+LT_RT_OBJS = $(RT_OBJS:.o=.lo)\ $(LIBLWGEOM_LDFLAGS)
+LT_OBJS = $(LT_RT_OBJS)
 
 all: $(RT_LIB)
 
@@ -58,10 +70,28 @@ $(RT_OBJS): $(RT_HEADERS)
 
 clean:
 	rm -f $(RT_OBJS)
+	rm -f $(LT_RT_OBJS)
+	rm -f $(LT_OBJS)
 	rm -f $(RT_LIB)
 
 distclean: clean
 	rm -f Makefile
 
-librtcore.a: $(RT_OBJS)
-	$(AR) $(RT_LIB) $(RT_OBJS)
+install: install-librtcore
+
+uninstall: uninstall-librtcore
+
+install-librtcore: librtcore.la
+	$(LIBTOOL) --mode=install $(INSTALL) librtcore.la "$(DESTDIR)$(libdir)/librtcore.la"
+	$(LIBTOOL) -m 0644 rt_serialize.h "$(DESTDIR)$(includedir)/rt_serialize.h"
+	$(LIBTOOL) -m 0644 librtcore.h "$(DESTDIR)$(includedir)/librtcore.h"
+	$(LIBTOOL) -m 0644 librtcore_internal.h "$(DESTDIR)$(includedir)/librtcore_internal.h"
+
+#librtcore.a: $(RT_OBJS)
+#	$(AR) $(RT_LIB) $(RT_OBJS)
+
+librtcore.la: $(LT_RT_OBJS)
+	$(LIBTOOL) --tag=CC --mode=link $(CC) -rpath $(libdir) $(LT_OBJS) \
+		-release $(SOVER) -version-info $(VERSION_INFO) $(LDFLAGS) -o $@
+$(LT_RT_OBJS): %.lo : %.c
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -c -o $@ $<
