@@ -21,18 +21,19 @@
 
 top_builddir = @top_builddir@
 CC = @CC@
-LIBLWGEOM_LDFLAGS = ../../liblwgeom/.libs/liblwgeom.la
-#LIBLWGEOM_LDFLAGS = -L/usr/lib64 -llwgeom
-#LIBLWGEOM_CFLAGS = -I../../liblwgeom
+#LIBLWGEOM_LDFLAGS = ../../liblwgeom/.libs/liblwgeom.a
+LIBLWGEOM_LDFLAGS = -L/usr/lib64 -llwgeom
+LIBLWGEOM_CFLAGS = -I../../liblwgeom
 LIBGDAL_CFLAGS = @LIBGDAL_CFLAGS@
 LIBGDAL_LDFLAGS = @LIBGDAL_LDFLAGS@
 GEOS_LDFLAGS = @GEOS_LDFLAGS@ -lgeos_c
 PROJ_LDFLAGS = @PROJ_LDFLAGS@ -lproj
-LDFLAGS = $(LIBGDAL_LDFLAGS) $(PROJ_LDFLAGS) $(GEOS_LDFLAGS)
+LDFLAGS = $(LIBGDAL_LDFLAGS) $(PROJ_LDFLAGS) $(GEOS_LDFLAGS) $(LIBLWGEOM_LDFLAGS)
 CFLAGS = @CFLAGS@ @PICFLAGS@ @WARNFLAGS@ $(LIBLWGEOM_CFLAGS) $(LIBGDAL_CFLAGS) @PROJ_CPPFLAGS@ @GEOS_CPPFLAGS@
 LIBTOOL = @LIBTOOL@
 SHELL = @SHELL@
 INSTALL = $(SHELL) ../install-sh
+libdir = @libdir@
 
 SOVER = @POSTGIS_MAJOR_VERSION@.@POSTGIS_MINOR_VERSION@
 
@@ -61,7 +62,8 @@ RT_HEADERS = \
 	librtcore_internal.h \
 	../raster_config.h
 
-LT_RT_OBJS = $(RT_OBJS:.o=.lo)\ $(LIBLWGEOM_LDFLAGS)
+LT_RT_OBJS = $(RT_OBJS:.o=.lo)
+
 LT_OBJS = $(LT_RT_OBJS)
 
 all: $(RT_LIB)
