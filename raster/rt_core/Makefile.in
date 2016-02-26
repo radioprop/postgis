@@ -94,6 +94,6 @@ install-librtcore: librtcore.la
 
 librtcore.la: $(LT_RT_OBJS)
 	$(LIBTOOL) --tag=CC --mode=link $(CC) -rpath $(libdir) $(LT_OBJS) \
-		-release $(SOVER) -version-info $(VERSION_INFO) $(LDFLAGS) -o $@
+		-release $(SOVER) -version-info $(VERSION_INFO) -L../../liblwgeom/ $(LDFLAGS) -o $@
 $(LT_RT_OBJS): %.lo : %.c
 	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) -c -o $@ $<

@@ -46,7 +46,7 @@ GEOS_CFLAGS=@GEOS_CPPFLAGS@
 GEOS_LDFLAGS=@GEOS_LDFLAGS@ -lgeos_c
 
 RTCORE_CFLAGS=-I$(RT_CORE)
-RTCORE_LDFLAGS=$(RT_CORE)/librtcore.a
+RTCORE_LDFLAGS=$(RT_CORE)/.lib/librtcore.la
 
 # GetText includes and libraries
 GETTEXT_CFLAGS = @GETTEXT_CFLAGS@
@@ -81,7 +81,7 @@ all: $(RASTER2PGSQL)
 raster2pgsql.o: raster2pgsql.c
 	$(CC) $(CFLAGS) -c $<
 
-$(RASTER2PGSQL): $(RT_CORE)/librtcore.a raster2pgsql.o
+$(RASTER2PGSQL): $(RT_CORE)/.libs/librtcore.la raster2pgsql.o
 	$(LIBTOOL) --mode=link $(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 installdir:
@@ -93,7 +93,6 @@ install: installdir
 uninstall:
 	$(LIBTOOL) --mode=uninstall $(RM) "$(DESTDIR)$(PGSQL_BINDIR)/$(RASTER2PGSQL)"
 
-$(RT_CORE)/librtcore.a:
 	$(MAKE) -C ../rt_core
 
 clean:
